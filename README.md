@@ -1,8 +1,8 @@
-# 📚 Bookworm Library Management System
+# Bookworm Library Management System
 
 Bookworm is a modern, full-featured web application designed to streamline library operations. It provides a robust platform for librarians to manage their collection and patrons, while offering members a user-friendly dashboard to track their loans and fines.
 
-## 🚀 Features
+## Features
 
 ### For Librarians (Command Center)
 *   **Dashboard**: Real-time overview of library statistics, including total books, active loans, and outstanding fines.
@@ -18,7 +18,7 @@ Bookworm is a modern, full-featured web application designed to streamline libra
 *   **Online Payments**: Securely pay fines using the integrated **Stripe** payment gateway.
 *   **Catalog Search**: Search for books by title or author.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 *   **Backend**: Django 5.2.8 (Python)
 *   **Database**: MySQL
@@ -27,7 +27,7 @@ Bookworm is a modern, full-featured web application designed to streamline libra
 *   **Email Service**: SMTP (with HTML templates)
 *   **Environment Management**: python-dotenv
 
-## ⚙️ Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 *   Python 3.10+
@@ -98,8 +98,8 @@ python manage.py runserver
 
 Visit `http://127.0.0.1:8000/` in your browser.
 
-## 📧 Email Notifications
+## Email Notifications
 The application uses SMTP to send email reminders. For Gmail, ensure you have "2-Step Verification" enabled and generate an **App Password** to use as the `EMAIL_HOST_PASSWORD`.
 
-## 💳 Stripe Integration
+## Stripe Integration
 To test payments, use the Stripe Test Card numbers (e.g., `4242 4242 4242 4242`) with any future expiration date and any CVC.
