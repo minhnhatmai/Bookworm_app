@@ -1,0 +1,288 @@
+{% extends "library/base_layout.html" %}
+
+{% block content %}
+    
+    {% if is_librarian %}
+        <!-- LIBRARIAN COMMAND CENTER -->
+        <div class="card-header">
+            <h1>Library Command Center</h1>
+            <p style="color: #64748b;">Overview for {{ user.first_name|default:user.username }}</p>
+        </div>
+
+        <!-- 1. Quick Actions Bar -->
+        <div class="quick-actions">
+            <a href="{% url 'checkout' %}" class="action-card primary">
+                <span class="icon">📤</span>
+                <span class="label">Check Out</span>
+            </a>
+            <a href="{% url 'return_book' %}" class="action-card secondary">
+                <span class="icon">📥</span>
+                <span class="label">Return Book</span>
+            </a>
+            <a href="{% url 'register_member' %}" class="action-card">
+                <span class="icon">👤</span>
+                <span class="label">New Member</span>
+            </a>
+            <a href="{% url 'add_book' %}" class="action-card">
+                <span class="icon">📚</span>
+                <span class="label">Add Book</span>
+            </a>
+        </div>
+
+        <!-- 2. Key Metrics Grid -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-card-title">Circulation</div>
+                <div class="stat-split">
+                    <div>
+                        <div class="stat-card-value">{{ books_checked_out }}</div>
+                        <span class="stat-label">Checked Out</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div>
+                        <div class="stat-card-value">{{ books_available }}</div>
+                        <span class="stat-label">Available</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-title">Financials</div>
+                <div class="stat-card-value">${{ total_outstanding_fines }}</div>
+                <span class="stat-label">Unpaid Fines</span>
+            </div>
+
+            <div class="stat-card {% if loans_due_today > 0 %}alert{% endif %}">
+                <div class="stat-card-title">Attention Needed</div>
+                <div class="stat-card-value">{{ loans_due_today }}</div>
+                <span class="stat-label">Loans Due Today</span>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-title">Community</div>
+                <div class="stat-card-value">{{ total_members }}</div>
+                <span class="stat-label">Active Members</span>
+            </div>
+        </div>
+
+        <!-- 3. Split View: Activity & Fines -->
+        <div class="dashboard-split-view">
+            
+            <!-- Recent Activity Feed -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <h2>🕒 Recent Activity</h2>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; text-align: left;">
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Date</th>
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Action</th>
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Book</th>
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Member</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in recent_activity %}
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ loan.checkoutdate }}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                                <span class="badge success">Checked Out</span>
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ loan.book.title }}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ loan.member.firstname }} {{ loan.member.lastname }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">No recent activity recorded.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- NEW: Unpaid Fines List -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <h2>💸 Outstanding Fines</h2>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; text-align: left;">
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Member</th>
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Debt</th>
+                            <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for debtor in debtors %}
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ debtor.member__firstname }} {{ debtor.member__lastname }}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #ef4444; font-weight: bold;">${{ debtor.total_debt }}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 5px;">
+                                <a href="{% url 'view_fees' %}?member_id={{ debtor.member__memberid }}" class="btn-sm">Collect</a>
+                                <a href="{% url 'notify_debtor' debtor.member__memberid %}" class="btn-sm btn-secondary" title="Send Email Reminder">📧</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="padding: 20px; text-align: center; color: #10b981;">No outstanding fines!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <style>
+            /* Quick Actions Styling */
+            .quick-actions {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            .action-card {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                text-decoration: none;
+                color: #333;
+                transition: transform 0.2s;
+            }
+            .action-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+            .action-card .icon { font-size: 24px; margin-bottom: 8px; }
+            .action-card.primary { background-color: #10b981; color: white; }
+            .action-card.secondary { background-color: #3b82f6; color: white; }
+            
+            /* Stat Split Styling */
+            .stat-split {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .stat-divider {
+                width: 1px;
+                height: 40px;
+                background-color: #e2e8f0;
+                margin: 0 15px;
+            }
+            .stat-label {
+                font-size: 0.85rem;
+                color: #64748b;
+            }
+            .badge {
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8em;
+                font-weight: 600;
+            }
+            .badge.success { background-color: #dcfce7; color: #166534; }
+            .stat-card.alert { border-left: 4px solid #ef4444; }
+
+            /* New Split View Styling */
+            .dashboard-split-view {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            
+            @media (max-width: 900px) {
+                .dashboard-split-view {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .btn-sm {
+                padding: 4px 10px;
+                background-color: #f97316;
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                font-size: 0.85rem;
+                transition: background 0.2s;
+            }
+            .btn-sm:hover {
+                background-color: #ea580c;
+            }
+            .btn-secondary {
+                background-color: #607d8b;
+            }
+            .btn-secondary:hover {
+                background-color: #455a64;
+            }
+        </style>
+
+    {% else %}
+        <!-- MEMBER DASHBOARD -->
+        <div class="card-header">
+            <h1>Welcome back, {{ user.first_name|default:user.username }}!</h1>
+        </div>
+        
+        {% if member %}
+            <!-- Section 1: My Active Loans -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📚 Books You Have Checked Out</h2>
+                </div>
+                {% if my_loans %}
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background-color: #f8fafc; text-align: left;">
+                                <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Book Title</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Due Date</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in my_loans %}
+                            <tr>
+                                <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ loan.book.title }}</td>
+                                <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ loan.duedate }}</td>
+                                <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                                    {% if loan.duedate < today %}
+                                        <span style="color: #ef4444; font-weight: 600;">Overdue</span>
+                                    {% else %}
+                                        <span style="color: #10b981; font-weight: 600;">On Time</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p style="color: #64748b; margin-top: 10px;">You don't have any books checked out right now.</p>
+                    <a href="{% url 'search_catalog' %}" class="submit-btn" style="display: inline-block; text-decoration: none; margin-top: 10px;">Browse Catalog</a>
+                {% endif %}
+            </div>
+
+            <!-- Section 2: My Fines Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>💰 Account Status</h2>
+                </div>
+                {% if my_fines_count > 0 %}
+                    <div style="background-color: #fff7ed; border: 1px solid #fdba74; padding: 16px; border-radius: 8px; color: #9a3412;">
+                        <p style="margin: 0 0 12px 0;">You have <strong>{{ my_fines_count }}</strong> unpaid fine(s) totaling <strong>${{ total_fine_amount }}</strong>.</p>
+                        <a href="{% url 'view_fees' %}" class="submit-btn" style="background-color: #f97316; text-decoration: none; display: inline-block;">View & Pay Fines</a>
+                    </div>
+                {% else %}
+                    <p style="color: #10b981; font-weight: 600; margin-top: 10px;">Your account is in good standing. No fines due!</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="card">
+                <p style="color: #ef4444;">We couldn't find a library card linked to your email address ({{ user.email }}). Please contact the librarian.</p>
+            </div>
+        {% endif %}
+    {% endif %}
+    
+{% endblock %}

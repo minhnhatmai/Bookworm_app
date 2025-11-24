@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BookWorm Dashboard</title>
+    <!-- Link to our new dashboard.css file -->
+    <link rel="stylesheet" href="{% static 'library/css/dashboard.css' %}">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        
+        <!-- === SIDEBAR === -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>BookWorm</h1>
+            </div>
+            <ul class="sidebar-nav">
+                <!--
+                    These are our 5 scenarios + a dashboard home.
+                    I've added inline SVG icons for a professional look.
+                -->
+                <li>
+                    <a href="{% url 'main_menu' %}">
+                        <!-- Icon: Home -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-7-4h10z" /></svg>
+                        Dashboard
+                    </a>
+                </li>
+                
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <li>
+                            <a href="{% url 'register_member' %}">
+                                <!-- Icon: User Plus -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                Register Member
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'member_list' %}">
+                                <!-- Icon: Users -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                Manage Members
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'book_list' %}">
+                                <!-- Icon: Book Open -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m-1.5-1.5l-3-3m0 0l3-3m-3 3h12" /></svg>
+                                Manage Books
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'add_book' %}">
+                                <!-- Icon: Plus Circle -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Add New Book
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'checkout' %}">
+                                <!-- Icon: Book Out -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m-1.5-1.5l-3-3m0 0l3-3m-3 3h12" /></svg>
+                                Check-Out Book
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'return_book' %}">
+                                <!-- Icon: Book In -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m-1.5-1.5l3 3m0 0l-3 3m3-3H9" /></svg>
+                                Return Book
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+
+                <li>
+                    <a href="{% url 'search_catalog' %}">
+                        <!-- Icon: Search -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        Search Catalog
+                    </a>
+                </li>
+                
+                {% if user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'view_fees' %}">
+                            <!-- Icon: Dollar -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m-1 1h2m-2 1h2m-1-1v-1m0-14a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            {% if user.is_staff %}View Late Fees{% else %}My Fines{% endif %}
+                        </a>
+                    </li>
+                    
+                    <li style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" style="background: none; border: none; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; font-size: 1rem; width: 100%; text-align: left; padding: 0.75rem 1rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 0.75rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                Logout ({{ user.username }})
+                            </button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <a href="{% url 'login' %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                            Login
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <!-- === MAIN CONTENT AREA === -->
+        <main class="main-content">
+            <!--
+                This "block" is where all your other pages
+                (main_menu.html, register_member.html, etc.)
+                will be injected.
+            -->
+            {% block content %}
+            {% endblock %}
+        </main>
+
+    </div>
+
+</body>
+</html>

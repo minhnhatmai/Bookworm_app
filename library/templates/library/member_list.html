@@ -1,0 +1,51 @@
+{% extends "library/base_layout.html" %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Member Lookup</h2>
+        </div>
+        
+        <form method="get" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" name="q" placeholder="Search by name, email, or ID..." value="{{ query }}" style="flex-grow: 1;">
+            <button type="submit" class="submit-btn">Search</button>
+        </form>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f8fafc; text-align: left;">
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">ID</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Name</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Email</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Status</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ member.memberid }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ member.firstname }} {{ member.lastname }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ member.email }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.85rem; 
+                            {% if member.membershipstatus == 'Active' %}background-color: #dcfce7; color: #166534;
+                            {% else %}background-color: #fee2e2; color: #991b1b;{% endif %}">
+                            {{ member.membershipstatus }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <a href="{% url 'member_detail' member.memberid %}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">View Profile</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">No members found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}

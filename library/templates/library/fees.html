@@ -1,0 +1,66 @@
+{% extends "library/base_layout.html" %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header">
+            <h2>View/Assess Late Fees</h2>
+        </div>
+        
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if user.is_staff %}
+        <form method="get">
+            <div class="form-group">
+                <label for="member_id">Member ID:</label>
+                <input type="text" id="member_id" name="member_id" placeholder="e.g., 1" value="{{ request.GET.member_id }}">
+            </div>
+            
+            <button type="submit" class="submit-btn">Check Fines</button>
+            
+            <hr style="margin: 24px 0; border: 0; border-top: 1px solid #e2e8f0;">
+        </form>
+        {% endif %}
+            
+        <label for="results" style="font-weight: 600; color: #334155;">Pending Fines:</label>
+        <div id="results" style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #cbd5e1; min-height: 100px;">
+            {% if member %}
+                <h3>Fines for {{ member.firstname }} {{ member.lastname }}</h3>
+                {% if fines %}
+                    <ul style="list-style: none; padding: 0;">
+                        {% for fine in fines %}
+                            <li style="margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                                <span>Amount: ${{ fine.amount }} - Status: {{ fine.status }} (Loan ID: {{ fine.loan.loanid }})</span>
+                                {% if not user.is_staff %}
+                                <form action="{% url 'pay_fine' fine.fineid %}" method="post" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background-color: #635bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                                        Pay with Card
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No unpaid fines found for this member.</p>
+                {% endif %}
+            {% elif request.GET.member_id %}
+                    <p>Member not found.</p>
+            {% else %}
+                {% if user.is_staff %}
+                    <p>(Fines for the member will appear here...)</p>
+                {% else %}
+                    <p>No fines to display.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

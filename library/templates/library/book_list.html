@@ -1,0 +1,55 @@
+{% extends "library/base_layout.html" %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Manage Books</h2>
+            <a href="{% url 'add_book' %}" class="submit-btn" style="text-decoration: none; font-size: 0.9rem;">+ Add New Book</a>
+        </div>
+        
+        <form method="get" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" name="q" placeholder="Search by title, author, or ISBN..." value="{{ query }}" style="flex-grow: 1;">
+            <button type="submit" class="submit-btn">Search</button>
+        </form>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f8fafc; text-align: left;">
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">ID</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Title</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Author</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">ISBN</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Status</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #e2e8f0;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ book.bookid }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ book.title }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ book.author.authorname }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ book.isbn }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.85rem; 
+                            {% if book.status == 'Available' %}background-color: #dcfce7; color: #166534;
+                            {% elif book.status == 'Checked Out' %}background-color: #fee2e2; color: #991b1b;
+                            {% else %}background-color: #f1f5f9; color: #475569;{% endif %}">
+                            {{ book.status }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <a href="{% url 'book_detail' book.bookid %}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">View/Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 20px; text-align: center; color: #64748b;">No books found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}

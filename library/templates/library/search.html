@@ -1,0 +1,48 @@
+{% extends "library/base_layout.html" %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Catalog Search</h2>
+        </div>
+        
+        <form method="get">
+            <div class="form-group">
+                <label for="search_term">Search Term:</label>
+                <input type="text" id="search_term" name="search_term" placeholder="e.g., The Hobbit" value="{{ request.GET.search_term }}">
+            </div>
+            
+            <div class="radio-group">
+                <strong>Search by:</strong>
+                <input type="radio" id="by_title" name="search_type" value="title" {% if request.GET.search_type == 'title' or not request.GET.search_type %}checked{% endif %}>
+                <label for="by_title">Title</label>
+                
+                <input type="radio" id="by_author" name="search_type" value="author" {% if request.GET.search_type == 'author' %}checked{% endif %}>
+                <label for="by_author">Author</label>
+            </div>
+            
+            <button type="submit" class="submit-btn">Search</button>
+            
+            <hr style="margin: 24px 0; border: 0; border-top: 1px solid #e2e8f0;">
+            
+            <label for="results" style="font-weight: 600; color: #334155;">Search Results:</label>
+            <div id="results" style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #cbd5e1; min-height: 100px;">
+                {% if results %}
+                    <ul style="list-style: none; padding: 0;">
+                        {% for book in results %}
+                            <li style="margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
+                                <strong>{{ book.title }}</strong> by {{ book.author.authorname }} (ISBN: {{ book.isbn }}) - Status: {{ book.status }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% elif request.GET.search_term %}
+                    <p>No results found.</p>
+                {% else %}
+                    <p>(Search results will appear here...)</p>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+{% endblock %}
