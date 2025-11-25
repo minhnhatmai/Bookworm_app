@@ -16,12 +16,38 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Helper function to check if user is staff (Librarian)
 def is_librarian(user):
+    """
+    Checks if the user is a staff member (Librarian).
+
+    This helper function is primarily used by the @user_passes_test decorator
+    to restrict access to certain views that should only be accessible to librarians.
+
+    Args:
+        user (User): The Django User object to check.
+
+    Returns:
+        bool: True if the user is a staff member, False otherwise.
+    """
     return user.is_staff
 
 # --- Main UI ---
 # This view renders the main menu [cite: 200]
 @login_required
 def main_menu(request):
+    """
+    Renders the main dashboard based on the user's role.
+
+    If the user is a librarian (staff), it displays the 'Command Center' with library statistics,
+    alerts for due loans, recent activity, and debt management.
+    If the user is a regular member, it displays a personal dashboard with their active loans
+    and outstanding fines.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'main_menu.html' template with the appropriate context.
+    """
     today = timezone.now().date()
     
     if request.user.is_staff:
@@ -92,6 +118,19 @@ def main_menu(request):
 # This view renders the "Register Member" page
 @user_passes_test(is_librarian)
 def register_member_view(request):
+    """
+    Registers a new library member.
+
+    This view handles the form submission for creating a new Member record.
+    It expects 'fname', 'lname', 'email', and 'phone' in the POST data.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'register_member.html' template or a redirect on success.
+    """
     if request.method == 'POST':
         first_name = request.POST.get('fname')
         last_name = request.POST.get('lname')
@@ -113,21 +152,65 @@ def register_member_view(request):
 
     return render(request, 'library/register_member.html')
 
-from django.db.models import Q
-
-# ...existing code...
-
-# --- Scenario 1.5: Add New Book ---
+# --- Scenario 2: Add New Book ---
 @user_passes_test(is_librarian)
 def add_book_view(request):
-    # ...existing code...
+    """
+    Adds a new book to the library inventory.
+
+    This view handles the form submission for adding a new Book.
+    It gets or creates the Author and then creates the Book record.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'add_book.html' template or a redirect on success.
+    """
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author_name = request.POST.get('author_name')
+        isbn = request.POST.get('isbn')
+        genre = request.POST.get('genre')
+        
+        try:
+            # Get or Create Author
+            author, created = Author.objects.get_or_create(authorname=author_name)
+            
+            # Create Book
+            Book.objects.create(
+                title=title,
+                author=author,
+                isbn=isbn,
+                genre=genre,
+                status='Available'
+            )
+            messages.success(request, 'Book added successfully!')
+            return redirect('add_book')
+        except Exception as e:
+            messages.error(request, f'Error adding book: {e}')
+
     # Fetch all authors for the datalist
     authors = Author.objects.all().order_by('authorname')
     return render(request, 'library/add_book.html', {'authors': authors})
 
-# --- Scenario 1.6: Member Lookup & History ---
+# --- Scenario 3: Member Lookup & History ---
 @user_passes_test(is_librarian)
 def member_list_view(request):
+    """
+    Lists all members with search functionality.
+
+    Allows librarians to search for members by name, email, or ID.
+    If no search query is provided, it lists the first 50 members.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'member_list.html' template with the list of members.
+    """
     query = request.GET.get('q', '')
     members = []
     
@@ -147,6 +230,19 @@ def member_list_view(request):
 
 @user_passes_test(is_librarian)
 def member_detail_view(request, member_id):
+    """
+    Displays detailed history for a specific member.
+
+    Shows the member's active loans, loan history, and fine history.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        member_id (int): The ID of the member to retrieve.
+
+    Returns:
+        HttpResponse: The rendered 'member_detail.html' template with member details.
+    """
     try:
         member = Member.objects.get(memberid=member_id)
         
@@ -172,9 +268,22 @@ def member_detail_view(request, member_id):
         messages.error(request, 'Member not found.')
         return redirect('member_list')
 
-# --- Scenario 1.7: Manage Books ---
+# --- Scenario 4: Manage Books ---
 @user_passes_test(is_librarian)
 def book_list_view(request):
+    """
+    Lists all books with search functionality.
+
+    Allows librarians to search for books by title, author, or ISBN.
+    If no search query is provided, it lists the first 50 books.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'book_list.html' template with the list of books.
+    """
     query = request.GET.get('q', '')
     books = []
     
@@ -192,6 +301,20 @@ def book_list_view(request):
 
 @user_passes_test(is_librarian)
 def book_detail_view(request, book_id):
+    """
+    Displays and updates details for a specific book.
+
+    Allows librarians to view book details and loan history.
+    Also handles the form submission to update book information.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        book_id (int): The ID of the book to retrieve.
+
+    Returns:
+        HttpResponse: The rendered 'book_detail.html' template with book details.
+    """
     try:
         book = Book.objects.select_related('author').get(bookid=book_id)
         
@@ -236,9 +359,23 @@ def book_detail_view(request, book_id):
         messages.error(request, 'Book not found.')
         return redirect('book_list')
 
-# --- Scenario 7: Notify Debtor ---
+# --- Scenario 5: Notify Debtor ---
 @user_passes_test(is_librarian)
 def notify_debtor_view(request, member_id):
+    """
+    Sends an email reminder to a member about outstanding fines.
+
+    Calculates the total unpaid fines for the member and sends an HTML email
+    reminder using the configured SMTP backend.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        member_id (int): The ID of the member to notify.
+
+    Returns:
+        HttpResponse: A redirect to the 'main_menu' view.
+    """
     try:
         member = Member.objects.get(memberid=member_id)
         
@@ -319,10 +456,23 @@ def notify_debtor_view(request, member_id):
         
     return redirect('main_menu')
 
-# --- Scenario 2: Book Check-Out ---
+# --- Scenario 6: Book Check-Out ---
 # This view renders the "Check-Out" page
 @user_passes_test(is_librarian)
 def checkout_view(request):
+    """
+    Processes a book checkout for a member.
+
+    Creates a new Loan record if the book is available.
+    Updates the book status to 'Checked Out'.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'checkout.html' template or a redirect on success.
+    """
     if request.method == 'POST':
         member_id = request.POST.get('member_id')
         book_id = request.POST.get('book_id')
@@ -353,10 +503,23 @@ def checkout_view(request):
 
     return render(request, 'library/checkout.html')
 
-# --- Scenario 3: Book Return ---
+# --- Scenario 7: Book Return ---
 # This view renders the "Return" page
 @user_passes_test(is_librarian)
 def return_view(request):
+    """
+    Processes a book return and calculates fines if overdue.
+
+    Updates the Loan record with the return date and sets the book status to 'Available'.
+    If the book is returned after the due date, a Fine record is created.
+    Only accessible by librarians.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'return.html' template or a redirect on success.
+    """
     if request.method == 'POST':
         book_id = request.POST.get('book_id')
         
@@ -401,10 +564,22 @@ def return_view(request):
 
     return render(request, 'library/return.html')
 
-# --- Scenario 4: Catalog Search ---
+# --- Scenario 8: Catalog Search ---
 # This view renders the "Search" page
 @login_required
 def search_view(request):
+    """
+    Searches the book catalog.
+
+    Allows users to search for books by title or author.
+    Accessible by both librarians and members.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'search.html' template with search results.
+    """
     results = None
     if request.method == 'GET' and 'search_term' in request.GET:
         search_term = request.GET.get('search_term')
@@ -418,10 +593,22 @@ def search_view(request):
             
     return render(request, 'library/search.html', {'results': results})
 
-# --- Scenario 5: View/Assess Late Fees ---
+# --- Scenario 9: View/Assess Late Fees ---
 # This view renders the "View Fees" page
 @login_required
 def fees_view(request):
+    """
+    Displays outstanding fines.
+
+    Librarians can view fines for any member by providing a 'member_id' GET parameter.
+    Members can only view their own fines.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered 'fees.html' template with the list of fines.
+    """
     fines = None
     member = None
     
@@ -447,13 +634,26 @@ def fees_view(request):
 
     return render(request, 'library/fees.html', {'fines': fines, 'member': member})
 
-# --- Scenario 6: Process Payment (Stripe) ---
+# --- Scenario 10: Process Payment (Stripe) ---
 @login_required
 def create_checkout_session(request, fine_id):
+    """
+    Initiates a Stripe checkout session for paying a fine.
+
+    Creates a Stripe Session and redirects the user to the Stripe payment page.
+    Ensures that the user is authorized to pay the fine (either staff or the fine owner).
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        fine_id (int): The ID of the fine to be paid.
+
+    Returns:
+        HttpResponse: A redirect to the Stripe checkout URL.
+    """
     try:
         fine = Fine.objects.get(fineid=fine_id)
         
-        # Security Check: Ensure user owns the fine OR is staff
+        # Security Check: Ensure user owns the fine
         if not request.user.is_staff:
              if fine.member.email != request.user.email:
                  messages.error(request, "You are not authorized to pay this fine.")
@@ -491,6 +691,19 @@ def create_checkout_session(request, fine_id):
 
 @login_required
 def payment_success(request, fine_id):
+    """
+    Handles successful payment callback from Stripe.
+
+    Updates the fine status to 'Paid' after a successful transaction.
+    Redirects the user back to the fees page.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        fine_id (int): The ID of the fine that was paid.
+
+    Returns:
+        HttpResponse: A redirect to the 'fees_view'.
+    """
     try:
         fine = Fine.objects.get(fineid=fine_id)
         fine.status = 'Paid'
