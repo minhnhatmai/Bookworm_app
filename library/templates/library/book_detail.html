@@ -5,12 +5,21 @@
     <div class="card">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h2>Book Details</h2>
-            <span style="padding: 6px 12px; border-radius: 12px; font-weight: 600;
-                {% if book.status == 'Available' %}background-color: #dcfce7; color: #166534;
-                {% elif book.status == 'Checked Out' %}background-color: #fee2e2; color: #991b1b;
-                {% else %}background-color: #f1f5f9; color: #475569;{% endif %}">
-                {{ book.status }}
-            </span>
+            <div style="text-align: right;">
+                <span style="padding: 6px 12px; border-radius: 12px; font-weight: 600;
+                    {% if book.status == 'Available' %}background-color: #dcfce7; color: #166534;
+                    {% elif book.status == 'Checked Out' %}background-color: #fee2e2; color: #991b1b;
+                    {% else %}background-color: #f1f5f9; color: #475569;{% endif %}">
+                    {{ book.status }}
+                </span>
+                {% if active_loan %}
+                <div style="margin-top: 8px; font-size: 0.9rem; color: #475569;">
+                    Borrowed by: <a href="{% url 'member_detail' active_loan.member.memberid %}" style="color: #2563eb; text-decoration: none; font-weight: 600;">
+                        {{ active_loan.member.firstname }} {{ active_loan.member.lastname }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
         </div>
         
         {% if messages %}

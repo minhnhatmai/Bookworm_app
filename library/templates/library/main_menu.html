@@ -120,8 +120,7 @@
                             <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">{{ debtor.member__firstname }} {{ debtor.member__lastname }}</td>
                             <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #ef4444; font-weight: bold;">${{ debtor.total_debt }}</td>
                             <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 5px;">
-                                <a href="{% url 'view_fees' %}?member_id={{ debtor.member__memberid }}" class="btn-sm">Collect</a>
-                                <a href="{% url 'notify_debtor' debtor.member__memberid %}" class="btn-sm btn-secondary" title="Send Email Reminder">📧</a>
+                                <a href="{% url 'notify_debtor' debtor.member__memberid %}" class="btn-sm btn-primary" title="Send Email Reminder">Notify</a>
                             </td>
                         </tr>
                         {% empty %}

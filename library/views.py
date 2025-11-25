@@ -346,11 +346,16 @@ def book_detail_view(request, book_id):
 
         # Loan History for this book
         loan_history = Loan.objects.filter(book=book).select_related('member').order_by('-checkoutdate')
+        
+        # Active Loan (Current Borrower)
+        active_loan = Loan.objects.filter(book=book, returndate__isnull=True).select_related('member').first()
+        
         authors = Author.objects.all().order_by('authorname') # For datalist
         
         context = {
             'book': book,
             'loan_history': loan_history,
+            'active_loan': active_loan,
             'authors': authors
         }
         return render(request, 'library/book_detail.html', context)
